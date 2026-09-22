@@ -26,8 +26,9 @@ let currentView = null;
  */
 async function handleRoute() {
   const hash = window.location.hash.slice(1) || '/';
-  const [path, ...paramParts] = hash.split('/');
-  const params = paramParts.join('/');
+  const segments = hash.split('/').filter(Boolean);
+  const path = '/' + (segments[0] || '');
+  const params = segments.slice(1).join('/');
 
   // 显示加载中
   mount(loading('加载中...'));
