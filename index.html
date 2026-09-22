@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="极简、可携带的CET4单词记忆应用">
+  <title>CET4 背单词</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <link rel="stylesheet" href="styles/base.css">
+  <style>
+    /* 骨架屏加载样式 */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 加载骨架 -->
+    <div class="skeleton" style="height: 60px; margin-bottom: 20px;"></div>
+    <div class="skeleton" style="height: 40px; margin-bottom: 10px;"></div>
+    <div class="skeleton" style="height: 200px;"></div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

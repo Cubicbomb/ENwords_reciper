@@ -1,0 +1,182 @@
+[
+  {
+    "lemma": "abandon",
+    "senses": [{ "pos": "v.", "defCn": "放弃，遗弃" }],
+    "examples": [{ "en": "They had to abandon the project.", "cn": "他们不得不放弃这个项目。" }],
+    "rank": 1
+  },
+  {
+    "lemma": "ability",
+    "senses": [{ "pos": "n.", "defCn": "能力，才能" }],
+    "examples": [{ "en": "She has the ability to learn quickly.", "cn": "她有快速学习的能力。" }],
+    "rank": 2
+  },
+  {
+    "lemma": "able",
+    "senses": [{ "pos": "adj.", "defCn": "能够的，有能力的" }],
+    "examples": [{ "en": "I am able to swim.", "cn": "我会游泳。" }],
+    "rank": 3
+  },
+  {
+    "lemma": "abnormal",
+    "senses": [{ "pos": "adj.", "defCn": "异常的，不正常的" }],
+    "examples": [{ "en": "The test results were abnormal.", "cn": "测试结果异常。" }],
+    "rank": 4
+  },
+  {
+    "lemma": "aboard",
+    "senses": [{ "pos": "adv./prep.", "defCn": "在船/车/飞机上" }],
+    "examples": [{ "en": "Welcome aboard!", "cn": "欢迎登机！" }],
+    "rank": 5
+  },
+  {
+    "lemma": "abolish",
+    "senses": [{ "pos": "v.", "defCn": "废除，废止" }],
+    "examples": [{ "en": "They voted to abolish the death penalty.", "cn": "他们投票废除死刑。" }],
+    "rank": 6
+  },
+  {
+    "lemma": "about",
+    "senses": [{ "pos": "adv./prep.", "defCn": "大约；关于" }],
+    "examples": [{ "en": "What is this book about?", "cn": "这本书是关于什么的？" }],
+    "rank": 7
+  },
+  {
+    "lemma": "above",
+    "senses": [{ "pos": "prep./adv.", "defCn": "在...上方" }],
+    "examples": [{ "en": "The picture is above the fireplace.", "cn": "画在壁炉上方。" }],
+    "rank": 8
+  },
+  {
+    "lemma": "abroad",
+    "senses": [{ "pos": "adv.", "defCn": "在国外" }],
+    "examples": [{ "en": "He is studying abroad.", "cn": "他在国外学习。" }],
+    "rank": 9
+  },
+  {
+    "lemma": "absence",
+    "senses": [{ "pos": "n.", "defCn": "缺席，不在" }],
+    "examples": [{ "en": "His absence was noticed.", "cn": "他的缺席被注意到了。" }],
+    "rank": 10
+  },
+  {
+    "lemma": "absent",
+    "senses": [{ "pos": "adj.", "defCn": "缺席的，不在的" }],
+    "examples": [{ "en": "He was absent from class.", "cn": "他缺席了课堂。" }],
+    "rank": 11
+  },
+  {
+    "lemma": "absolute",
+    "senses": [{ "pos": "adj.", "defCn": "绝对的，完全的" }],
+    "examples": [{ "en": "I have absolute confidence in her.", "cn": "我对她有绝对的信心。" }],
+    "rank": 12
+  },
+  {
+    "lemma": "absorb",
+    "senses": [{ "pos": "v.", "defCn": "吸收，吸引" }],
+    "examples": [{ "en": "The sponge absorbs water.", "cn": "海绵吸水。" }],
+    "rank": 13
+  },
+  {
+    "lemma": "abstract",
+    "senses": [{ "pos": "adj./n.", "defCn": "抽象的；摘要" }],
+    "examples": [{ "en": "This is an abstract concept.", "cn": "这是一个抽象概念。" }],
+    "rank": 14
+  },
+  {
+    "lemma": "absurd",
+    "senses": [{ "pos": "adj.", "defCn": "荒谬的，可笑的" }],
+    "examples": [{ "en": "That's an absurd idea.", "cn": "那是个荒谬的想法。" }],
+    "rank": 15
+  },
+  {
+    "lemma": "abundance",
+    "senses": [{ "pos": "n.", "defCn": "丰富，充裕" }],
+    "examples": [{ "en": "There is an abundance of food.", "cn": "食物很丰富。" }],
+    "rank": 16
+  },
+  {
+    "lemma": "academic",
+    "senses": [{ "pos": "adj.", "defCn": "学术的，学业的" }],
+    "examples": [{ "en": "She has an academic background.", "cn": "她有学术背景。" }],
+    "rank": 17
+  },
+  {
+    "lemma": "academy",
+    "senses": [{ "pos": "n.", "defCn": "学院，研究院" }],
+    "examples": [{ "en": "He studied at the Royal Academy.", "cn": "他在皇家学院学习。" }],
+    "rank": 18
+  },
+  {
+    "lemma": "accelerate",
+    "senses": [{ "pos": "v.", "defCn": "加速，促进" }],
+    "examples": [{ "en": "The car accelerated quickly.", "cn": "汽车快速加速。" }],
+    "rank": 19
+  },
+  {
+    "lemma": "accent",
+    "senses": [{ "pos": "n.", "defCn": "口音，重音" }],
+    "examples": [{ "en": "She speaks with a British accent.", "cn": "她说话带英国口音。" }],
+    "rank": 20
+  },
+  {
+    "lemma": "accept",
+    "senses": [{ "pos": "v.", "defCn": "接受，承认" }],
+    "examples": [{ "en": "I accept your invitation.", "cn": "我接受你的邀请。" }],
+    "rank": 21
+  },
+  {
+    "lemma": "access",
+    "senses": [{ "pos": "n./v.", "defCn": "进入；访问" }],
+    "examples": [{ "en": "You need a password to access the system.", "cn": "你需要密码才能访问系统。" }],
+    "rank": 22
+  },
+  {
+    "lemma": "accident",
+    "senses": [{ "pos": "n.", "defCn": "事故，意外" }],
+    "examples": [{ "en": "There was a car accident.", "cn": "发生了一起车祸。" }],
+    "rank": 23
+  },
+  {
+    "lemma": "accompany",
+    "senses": [{ "pos": "v.", "defCn": "陪伴，伴随" }],
+    "examples": [{ "en": "She accompanied him to the party.", "cn": "她陪他去参加聚会。" }],
+    "rank": 24
+  },
+  {
+    "lemma": "accomplish",
+    "senses": [{ "pos": "v.", "defCn": "完成，实现" }],
+    "examples": [{ "en": "She accomplished her goal.", "cn": "她完成了目标。" }],
+    "rank": 25
+  },
+  {
+    "lemma": "account",
+    "senses": [{ "pos": "n.", "defCn": "账户，描述" }],
+    "examples": [{ "en": "I opened a bank account.", "cn": "我开了一个银行账户。" }],
+    "rank": 26
+  },
+  {
+    "lemma": "accurate",
+    "senses": [{ "pos": "adj.", "defCn": "准确的，精确的" }],
+    "examples": [{ "en": "The information is accurate.", "cn": "信息是准确的。" }],
+    "rank": 27
+  },
+  {
+    "lemma": "accuse",
+    "senses": [{ "pos": "v.", "defCn": "指控，谴责" }],
+    "examples": [{ "en": "He was accused of theft.", "cn": "他被指控盗窃。" }],
+    "rank": 28
+  },
+  {
+    "lemma": "achieve",
+    "senses": [{ "pos": "v.", "defCn": "实现，达到" }],
+    "examples": [{ "en": "She achieved great success.", "cn": "她取得了巨大成功。" }],
+    "rank": 29
+  },
+  {
+    "lemma": "acknowledge",
+    "senses": [{ "pos": "v.", "defCn": "承认，感谢" }],
+    "examples": [{ "en": "He acknowledged his mistake.", "cn": "他承认了自己的错误。" }],
+    "rank": 30
+  }
+]
