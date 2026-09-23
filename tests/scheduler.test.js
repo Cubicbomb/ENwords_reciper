@@ -39,16 +39,16 @@ const newCard = () => ({ id: 'd:w', deckId: 'd', wordId: 'w', state: 'new', due:
 const now = Date.now();
 
 describe('SM-2 grade()', () => {
-  it('rating=3 首次: state→review, interval=1', () => {
-    const c = grade(newCard(), 3, now);
+  it('rating=3 首次: state→review, interval=1', async () => {
+    const c = await grade(newCard(), 3, now);
     assert.equal(c.state, 'review');
     assert.equal(c.intervalDays, 1);
     assert.equal(c.reps, 1);
     assert.equal(c.streak, 1);
   });
 
-  it('rating=1: state→relearning, ease 降低, lapses+1', () => {
-    const c = grade(newCard(), 1, now);
+  it('rating=1: state→relearning, ease 降低, lapses+1', async () => {
+    const c = await grade(newCard(), 1, now);
     assert.equal(c.state, 'relearning');
     assert.equal(c.intervalDays, 0);
     assert.equal(c.ease, 2.3);
@@ -56,29 +56,29 @@ describe('SM-2 grade()', () => {
     assert.equal(c.streak, 0);
   });
 
-  it('rating=4 首次: interval=3, ease 上升', () => {
-    const c = grade(newCard(), 4, now);
+  it('rating=4 首次: interval=3, ease 上升', async () => {
+    const c = await grade(newCard(), 4, now);
     assert.equal(c.state, 'review');
     assert.equal(c.intervalDays, 3);
     assert.equal(c.ease, 2.65);
   });
 
-  it('ease 下限为 1.3', () => {
+  it('ease 下限为 1.3', async () => {
     let c = { ...newCard(), ease: 1.31, state: 'review', intervalDays: 1, reps: 2 };
-    c = grade(c, 1, now);
+    c = await grade(c, 1, now);
     assert.equal(c.ease, 1.3);
   });
 
-  it('ease 上限为 3.0', () => {
+  it('ease 上限为 3.0', async () => {
     let c = { ...newCard(), ease: 2.99, state: 'review', intervalDays: 10, reps: 5 };
-    c = grade(c, 4, now);
+    c = await grade(c, 4, now);
     assert.equal(c.ease, 3.0);
   });
 
-  it('纯函数：不修改原始对象', () => {
+  it('纯函数：不修改原始对象', async () => {
     const orig = newCard();
     const copy = { ...orig };
-    grade(orig, 3, now);
+    await grade(orig, 3, now);
     assert.deepEqual(orig, copy);
   });
 });

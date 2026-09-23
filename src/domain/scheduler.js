@@ -1,5 +1,5 @@
 /**
- * SRS 调度器：SM-2 算法实现
+ * SRS 调度器：支持 SM-2 和 FSRS 算法
  * 纯函数，不碰 IO，可直接被 node --test 覆盖
  */
 
@@ -8,14 +8,43 @@
  * @typedef {import('./model.js').Rating} Rating
  */
 
+// 算法选择：'sm2' 或 'fsrs'
+let algorithm = 'sm2';
+
 /**
- * SM-2 调度算法
+ * 设置调度算法
+ * @param {'sm2'|'fsrs'} alg
+ */
+export function setAlgorithm(alg) {
+  if (alg !== 'sm2' && alg !== 'fsrs') {
+    throw new Error('Invalid algorithm: ' + alg);
+  }
+  algorithm = alg;
+}
+
+/**
+ * 获取当前算法
+ * @returns {'sm2'|'fsrs'}
+ */
+export function getAlgorithm() {
+  return algorithm;
+}
+
+/**
+ * 调度算法（根据当前设置选择 SM-2 或 FSRS）
  * @param {Card} card - 当前卡片
  * @param {Rating} rating - 评分 (1=重来, 2=模糊, 3=认识, 4=简单)
  * @param {number} now - 当前时间戳
  * @returns {Card} 更新后的卡片（纯函数，不修改入参）
  */
-export function grade(card, rating, now) {
+export async function grade(card, rating, now) {
+  if (algorithm === 'fsrs') {
+    // 动态导入 FSRS 算法
+    const { gradeFSRS } = await import('./scheduler-fsrs.js');
+    return gradeFSRS(card, rating, now);
+  }
+  
+  // SM-2 算法
   // 深拷贝，避免修改原对象
   const updated = { ...card };
   
