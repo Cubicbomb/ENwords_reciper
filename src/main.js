@@ -13,6 +13,7 @@ const routes = {
   '/import': () => import('./views/import.js'),
   '/library': () => import('./views/library.js'),
   '/study': () => import('./views/study.js'),
+  '/quiz': () => import('./views/quiz.js'),
   '/mistakes': () => import('./views/mistakes.js'),
   '/stats': () => import('./views/stats.js'),
   '/settings': () => import('./views/settings.js')
@@ -36,7 +37,7 @@ async function handleRoute() {
     const viewModule = await viewLoader();
     
     // 调用视图的 render 方法
-    const view = await viewModule.render(params);
+    const view = await viewModule.render(params || null);
     
     if (view) {
       mount(view);
