@@ -12,7 +12,8 @@ let state = {
   parseResult: null,
   mapping: null,
   preview: [],
-  importing: false
+  importing: false,
+  isExcel: false
 };
 
 export async function render() {
@@ -25,10 +26,10 @@ export async function render() {
     // 文件选择区域
     h('div', { className: 'card', style: { padding: '20px', marginBottom: '20px' } },
       h('h3', { style: { marginTop: 0, marginBottom: '12px' } }, '选择文件'),
-      h('p', { style: { color: '#6b7280', marginBottom: '12px', fontSize: '14px' } }, '支持 CSV / TSV / TXT / JSON 格式'),
+      h('p', { style: { color: '#6b7280', marginBottom: '12px', fontSize: '14px' } }, '支持 CSV / TSV / TXT / JSON / Excel 格式'),
       h('input', {
         type: 'file',
-        accept: '.csv,.tsv,.txt,.json',
+        accept: '.csv,.tsv,.txt,.json,.xlsx,.xls,.xlsm',
         onChange: handleFileSelect,
         style: { width: '100%', padding: '8px' }
       })
@@ -48,13 +49,22 @@ function handleFileSelect(e) {
   
   state.file = file;
   
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      state.content = event.target.result;
-      state.parseResult = parseWordList(state.content, file.name);
-      state.mapping = state.parseResult.mapping;
-      state.preview = generateMappingPreview(state.parseResult.words, state.mapping);
+  // 检查是否是 Excel 文件
+  const ext = file.name.split('.').pop().toLowerCase();
+  state.isExcel = ['xlsx', 'xls', 'xlsm'].includes(ext);
+  
+  if (state.isExcel) {
+    // Excel 文件处理
+    handleExcelFile(file);
+  } else {
+    // 普通文本文件处理
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        state.content = event.target.result;
+        state.parseResult = parseWordList(state.content, file.name);
+        state.mapping = state.parseResult.mapping;
+        state.preview = generateMappingPreview(state.parseResult.words, state.mapping);
       
       mount(render());
       toast(`成功解析 ${state.parseResult.words.length} 个词条`);
@@ -191,5 +201,50 @@ async function handleImport() {
   } finally {
     state.importing = false;
     mount(render());
+  }
+}
+
+async function handleExcelFile(file) {
+  try {
+    const { parseExcel, generateExcelPreview } = await import('../io/excel.js');
+    
+    toast('正在解析 Excel 文件...');
+    const data = await parseExcel(file);
+    
+    // 生成预览
+    const preview = generateExcelPreview(data);
+    
+    // 转换为标准格式
+    const words = data.map(item => {
+      const word = item[preview.mapping.word];
+      const def = item[preview.mapping.def];
+      
+      if (!word || !def) return null;
+      
+      return {
+        id: String(word).trim().toLowerCase(),
+        lemma: String(word).trim().toLowerCase(),
+        phonetic: preview.mapping.phonetic ? { uk: String(item[preview.mapping.phonetic] || '').trim() } : {},
+        senses: [{ pos: '', defCn: String(def).trim() }],
+        examples: preview.mapping.example ? [{ en: String(item[preview.mapping.example] || '').trim(), cn: '' }] : [],
+        tags: [],
+        rank: 0
+      };
+    }).filter(Boolean);
+    
+    state.parseResult = { words, mapping: preview.mapping, format: 'excel' };
+    state.mapping = preview.mapping;
+    state.preview = preview.sample.map(item => ({
+      word: item[preview.mapping.word] || '',
+      def: item[preview.mapping.def] || '',
+      phonetic: item[preview.mapping.phonetic] || '',
+      example: item[preview.mapping.example] || ''
+    }));
+    
+    mount(render());
+    toast(`成功解析 ${words.length} 个词条`);
+  } catch (error) {
+    toast(`Excel 解析失败: ${error.message}`);
+    console.error(error);
   }
 }
