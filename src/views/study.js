@@ -5,7 +5,8 @@
 import { h, mount, toast, progressBar } from '../ui/dom.js';
 import { openDB, getAll, getByIndex, get, put } from '../store/db.js';
 import { createLog } from '../domain/model.js';
-import { grade, isDue } from '../domain/scheduler.js';
+import { grade } from '../domain/scheduler.js';
+import { buildQueue, getTodayStats } from '../domain/queue.js';
 import { autoSelectMode } from '../modes/index.js';
 import { createFlashButtons } from '../modes/shared.js';
 
@@ -21,13 +22,15 @@ export async function render(params) {
   if (!deck) return noDeckUI('词书不存在', '#/library');
 
   const allCards = await getByIndex(db, 'cards', 'deckId', deckId);
-  const dueCards = allCards.filter(isDue).sort((a, b) => {
-    if (a.state === 'new' && b.state !== 'new') return -1;
-    if (b.state === 'new' && a.state !== 'new') return 1;
-    return a.due - b.due;
-  });
+  
+  // 使用队列系统构建学习队列
+  const now = Date.now();
+  const queue = buildQueue(allCards, now);
+  
+  // 获取今日统计
+  const stats = getTodayStats(allCards, now);
 
-  if (dueCards.length === 0) {
+  if (queue.length === 0) {
     return h('div', { style: { padding: '20px', textAlign: 'center' } },
       h('h2', {}, '🎉 今日学习完成'),
       h('p', { style: { color: '#6b7280', marginBottom: '16px' } }, '没有更多待学习的单词了'),
@@ -38,19 +41,19 @@ export async function render(params) {
   // 缓存全量词条（首次加载后不再重拉）
   if (!cachedAllWords) cachedAllWords = await getAll(db, 'words');
 
-  // 加载 due 卡片对应的词条
+  // 加载队列中卡片对应的词条
   const words = [];
-  for (const card of dueCards) {
+  for (const card of queue) {
     const word = cachedAllWords.find(w => w.id === card.wordId) || await get(db, 'words', card.wordId);
     if (word) words.push({ card, word });
   }
 
-  session = { deckId, words, cards: dueCards, currentIndex: 0, mode: null, startTime: Date.now(), wordStartTime: 0, results: [] };
+  session = { deckId, words, cards: queue, currentIndex: 0, mode: null, startTime: Date.now(), wordStartTime: 0, results: [], stats };
   return renderSession(db);
 }
 
 function renderSession(db) {
-  const { words, currentIndex, results } = session;
+  const { words, currentIndex, results, stats } = session;
   if (currentIndex >= words.length) return renderComplete(db);
 
   const { card, word } = words[currentIndex];
@@ -61,6 +64,12 @@ function renderSession(db) {
   const modeItem = mode.build(word, { modeId: mode.id, allWords: cachedAllWords, onComplete: (r) => handleAnswer(db, r) });
 
   return h('div', { style: { minHeight: '100vh', background: '#f9fafb' } },
+    // 今日统计
+    h('div', { style: { padding: '12px 16px', background: 'white', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-around', fontSize: '14px' } },
+      h('span', { style: { color: '#6b7280' } }, `📚 新词: ${stats.new}`),
+      h('span', { style: { color: '#6b7280' } }, `🔄 复习: ${stats.review}`),
+      h('span', { style: { color: '#6b7280' } }, `✅ 已掌握: ${stats.mastered}`)
+    ),
     // 顶部
     h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'white', borderBottom: '1px solid #e5e7eb' } },
       h('button', {
