@@ -2,7 +2,7 @@
  * Service Worker：离线缓存
  */
 
-const CACHE_NAME = 'cet4-vocabulary-v1';
+const CACHE_NAME = 'cet4-vocabulary-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -31,6 +31,7 @@ const urlsToCache = [
 
 // 安装事件
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -42,6 +43,7 @@ self.addEventListener('install', (event) => {
 
 // 激活事件
 self.addEventListener('activate', (event) => {
+  self.clients.claim();
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(

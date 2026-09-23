@@ -205,7 +205,7 @@ async function handleAnswer(db, result) {
     answer: result.answer
   });
 
-  const updatedCard = grade(card, result.rating, Date.now());
+  const updatedCard = await grade(card, result.rating, Date.now());
   await put(db, 'cards', updatedCard);
   await put(db, 'logs', createLog(card.id, word.id, deckId, session.mode.id, result.rating, result.correct, elapsed, result.answer));
 
