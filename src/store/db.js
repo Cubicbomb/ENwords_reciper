@@ -97,18 +97,6 @@ function promisify(request) {
 }
 
 /**
- * 添加记录
- * @param {IDBDatabase} db
- * @param {string} storeName
- * @param {any} data
- * @returns {Promise<any>}
- */
-export async function add(db, storeName, data) {
-  const store = getStore(db, storeName, 'readwrite');
-  return promisify(store.add(data));
-}
-
-/**
  * 更新记录
  * @param {IDBDatabase} db
  * @param {string} storeName

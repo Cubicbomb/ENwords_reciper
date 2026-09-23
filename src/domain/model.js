@@ -211,46 +211,6 @@ export function createFlag(wordId, type) {
   };
 }
 
-// ========== 校验函数 ==========
-
-/**
- * 校验词条是否有效
- * @param {any} word
- * @returns {boolean}
- */
-export function isValidWord(word) {
-  return word && 
-    typeof word.lemma === 'string' && 
-    word.lemma.trim().length > 0 &&
-    Array.isArray(word.senses) && 
-    word.senses.length > 0;
-}
-
-/**
- * 校验词书是否有效
- * @param {any} deck
- * @returns {boolean}
- */
-export function isValidDeck(deck) {
-  return deck &&
-    typeof deck.id === 'string' &&
-    typeof deck.name === 'string' &&
-    Array.isArray(deck.wordIds);
-}
-
-/**
- * 校验卡片是否有效
- * @param {any} card
- * @returns {boolean}
- */
-export function isValidCard(card) {
-  return card &&
-    typeof card.id === 'string' &&
-    typeof card.deckId === 'string' &&
-    typeof card.wordId === 'string' &&
-    ['new', 'learning', 'review', 'relearning', 'suspended'].includes(card.state);
-}
-
 // ========== 归一化函数 ==========
 
 /**

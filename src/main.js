@@ -18,9 +18,6 @@ const routes = {
   '/settings': () => import('./views/settings.js')
 };
 
-// 当前视图模块
-let currentView = null;
-
 /**
  * 处理路由变化
  */
@@ -39,7 +36,6 @@ async function handleRoute() {
     const viewModule = await viewLoader();
     
     // 调用视图的 render 方法
-    currentView = viewModule;
     const view = await viewModule.render(params);
     
     if (view) {

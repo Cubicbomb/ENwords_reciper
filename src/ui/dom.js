@@ -107,45 +107,6 @@ export function progressBar(current, total) {
 }
 
 /**
- * 按钮组件
- * @param {Object} options
- * @param {string} options.text
- * @param {string} [options.type='primary']
- * @param {Function} [options.onClick]
- * @param {boolean} [options.disabled=false]
- * @returns {Node}
- */
-export function button({ text, type = 'primary', onClick, disabled = false }) {
-  const typeClass = {
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    danger: 'btn-danger'
-  }[type] || 'btn-primary';
-  
-  return h('button', {
-    className: `btn ${typeClass}`,
-    onClick: disabled ? undefined : onClick,
-    disabled: disabled
-  }, text);
-}
-
-/**
- * 卡片组件
- * @param {Object} options
- * @param {string} [options.title]
- * @param {string} [options.subtitle]
- * @param {Node[]} [options.actions]
- * @returns {Node}
- */
-export function card({ title, subtitle, actions = [] }) {
-  return h('div', { className: 'card' },
-    title ? h('h3', { className: 'card-title' }, title) : null,
-    subtitle ? h('p', { className: 'card-subtitle' }, subtitle) : null,
-    h('div', { className: 'card-actions' }, ...actions)
-  );
-}
-
-/**
  * 空状态组件
  * @param {Object} options
  * @param {string} options.message
