@@ -1,14 +1,20 @@
 ---
 feature: manual-mistake-random
-status: in-progress
+status: delivered
 updated: 2026-09-23
 branch: main
-commits: ce1aa23..  # filled at delivery
+commits: ce1aa23..20341b5
 ---
 
 # 手动摘录错词 + 学习队列随机出现
 
 ## Report
+
+**What was built** — 错词本支持手动摘录：`flags` 表写入 `Flag(mistake)`，成员为手动摘录与「最近一次 log.rating≤2 且无 ignore」的并集；移除时删 mistake，仅当 `logDerived` 才写 `Flag(ignore)` 持久抑制，避免历史错过但最近答对的摘录词被永久 ignore。学习队列 `buildQueue` 组间保持 复习→重学→学习→新词，组内 Fisher-Yates 乱序（可注入 `config.rng`）；新词随机抽样而非固定前 rank，复习仍按 due 截断后再乱序。
+
+**Verification** — `node tests/scheduler.test.js` 9/9、`normalize` 7/7、`parse` 12/12、`queue` 16/16、`modes` 10/10、`mistakes` 12/12 全 PASS。浏览器冒烟（Edge+Playwright）：摘录→硬刷新仍在、移除→刷新不复活、学习会话可进入，6/6 PASS。独立 Review 首轮 REQUEST_CHANGES（wrongCount 误作 ignore 条件），修复 `logDerived` 后 Re-review APPROVE。
+
+**Journey log** — (1) Worktree 创建被环境阻止，经用户同意先提交既有 UI 再在 main 开发。(2) `mount(render())` 把 Promise 传给 mount 导致添加后 UI 不刷新，改为 `mount(await render())`。(3) Review 抓到 remove 用 `wrongCount>0` 写 ignore 的语义错误，域层暴露 `logDerived` 后修复。(4) Chromium 下载超时，改用系统 Edge + Playwright 冒烟。(5) `tests/queue.test.js` 由内联改为 import 真源，消除双份实现漂移。
 
 ## [S1] Problem
 
@@ -24,8 +30,9 @@ commits: ce1aa23..  # filled at delivery
 - 手动摘录 = `put(db, 'flags', createFlag(wordId, 'mistake'))`，复用现有 `flags` 表（keyPath `['wordId','type']`）与 `createFlag` 工厂，无 schema 迁移。
 - 错词本成员 = `Flag(mistake)` ∪ `{wordId | 该词最近一次 log.rating <= 2}`，再排除带 `Flag(ignore)` 的词（tech-plan §3.5：`ignore` = 不再出现）。
 - **移除**
-  - 已摘录（有 `Flag(mistake)`）：`remove(db, 'flags', [wordId, 'mistake'])`；若同时是日志派生，还须 `put Flag(ignore)` 防止刷新后由日志复活。
-  - 仅日志派生：`put(db, 'flags', createFlag(wordId, 'ignore'))`，持久抑制。
+  - 有 `Flag(mistake)`：`remove(db, 'flags', [wordId, 'mistake'])`。
+  - 若 `entry.logDerived`（当前仍是日志派生）：`put Flag(ignore)` 防止刷新后由最近一次 rating≤2 复活。
+  - 仅手动摘录且已非日志派生：只删 mistake，不写 ignore（之后再答错仍应进本）。
 - **添加时**：若存在 `Flag(ignore)` 则先删除该 ignore，再写入 `Flag(mistake)`，保证摘录后必定显示。
 
 **纯函数（可 Node 测试）**
@@ -52,8 +59,8 @@ export function computeMistakeEntries({ words, logs, flags })
 **错词本页 UI（`src/views/mistakes.js`）**
 
 - 列表上方：文本输入 +「添加」按钮（Enter 同提交）。
-- 提交流程：`wordId(输入)` → `get(db,'words',id)`；词不存在 → toast「词库中不存在该词」；已在错词本 → toast「已在错词本中」；否则删 ignore（若有）+ 写 `Flag(mistake)` → 刷新列表。
-- 列表项：`manual` 为真时显示 `tag`「已摘录」；「移除」按上述持久化规则执行，成功后刷新列表（重读 flags/logs）。
+- 提交流程：`wordId(输入)` → `get(db,'words',id)`；词不存在 → toast「词库中不存在该词」；已在错词本 → toast「已在错词本中」；否则删 ignore（若有）+ 写 `Flag(mistake)` → `mount(await render())` 刷新。
+- 列表项：`manual` 为真时显示 `tag`「已摘录」；「移除」按上述持久化规则执行。
 - 加载：`getAll(words/logs/flags)` → `computeMistakeEntries`。
 
 **备份**：`export.js` 已导入导出 `flags`，无需改动。
@@ -62,7 +69,7 @@ export function computeMistakeEntries({ words, logs, flags })
 
 **契约变更（`src/domain/queue.js`）**
 
-- `buildQueue(cards, now, config)` 的 `config` 增加可选 `rng?: () => number`，默认 `Math.random`；新增导出纯函数 `shuffle(arr, rng)`（Fisher-Yates，返回新数组）。
+- `buildQueue(cards, now, config)` 的 `config` 增加可选 `rng?: () => number`，默认 `Math.random`；与 `DEFAULT_CONFIG` 浅合并；新增导出纯函数 `shuffle(arr, rng)`（Fisher-Yates，返回新数组）。
 - 分类与限流后的组内顺序改为：
 
 | 组 | 入选规则 | 呈现顺序 |
@@ -78,9 +85,9 @@ export function computeMistakeEntries({ words, logs, flags })
 
 **测试策略**
 
-- `tests/queue.test.js` 现内联 `buildQueue`：改为 `import { buildQueue, shuffle } from '../src/domain/queue.js'`（Node 24 可解析 ESM），消除双份实现漂移；其余用例保持。
-- 新增用例：固定 `rng` 序列断言组内顺序与新词抽样成员；默认 rng 下断言组间优先级、限流计数、集合不变性（成员集合与改造前一致）。
-- `tests/mistakes.test.js`（新建）：覆盖手动∪日志、ignore 抑制、双标记移除语义、wrongCount、空输入。
+- `tests/queue.test.js` 改为 `import { buildQueue, shuffle } from '../src/domain/queue.js'`，消除双份实现漂移。
+- 新增用例：固定 `rng` 断言组内顺序与新词抽样；默认 rng 断言组间优先级、限流计数、集合不变性。
+- `tests/mistakes.test.js`：覆盖手动∪日志、ignore 抑制、`logDerived` 真假、wrongCount、空输入。
 
 ## [S3] Out of Scope
 
@@ -93,7 +100,7 @@ export function computeMistakeEntries({ words, logs, flags })
 
 ## Tasks
 
-- [ ] T1: 新增 `src/domain/mistakes.js` 的 `computeMistakeEntries` + `tests/mistakes.test.js` — acceptance: `node tests/mistakes.test.js` 全绿，覆盖并集/ignore/手动计数 (covers: S2 手动摘录纯函数)
-- [ ] T2: `queue.js` 增加 `shuffle` 与 `config.rng`，按表实现组内乱序；`tests/queue.test.js` 改为 import 真源并补随机用例 — acceptance: `node tests/queue.test.js` 全绿，固定 rng 可断言顺序，默认 rng 组间优先级与限流不变 (covers: S2 随机队列; depends: —)
-- [ ] T3: 重写 `mistakes.js` 视图：加载 flags、添加输入、已摘录 tag、持久移除 — acceptance: 手动添加刷新后仍在；移除日志词刷新后不复活；移除手动词 flag 删除；词不存在/toast 提示正确 (covers: S2 错词本 UI; depends: T1)
-- [ ] T4: 全量回归 + 浏览器冒烟 — acceptance: AGENTS.md 五条测试命令全过；本地 `python -m http.server 5173` 下完成摘录→刷新→移除与连续两次学习会话顺序不同的手工检查 (covers: S2; depends: T2, T3)
+- [x] T1: 新增 `src/domain/mistakes.js` 的 `computeMistakeEntries` + `tests/mistakes.test.js` — acceptance: `node tests/mistakes.test.js` 全绿，覆盖并集/ignore/手动计数 (covers: S2 手动摘录纯函数)
+- [x] T2: `queue.js` 增加 `shuffle` 与 `config.rng`，按表实现组内乱序；`tests/queue.test.js` 改为 import 真源并补随机用例 — acceptance: `node tests/queue.test.js` 全绿，固定 rng 可断言顺序，默认 rng 组间优先级与限流不变 (covers: S2 随机队列; depends: —)
+- [x] T3: 重写 `mistakes.js` 视图：加载 flags、添加输入、已摘录 tag、持久移除 — acceptance: 手动添加刷新后仍在；移除日志词刷新后不复活；移除手动词 flag 删除；词不存在/toast 提示正确 (covers: S2 错词本 UI; depends: T1)
+- [x] T4: 全量回归 + 浏览器冒烟 — acceptance: AGENTS.md 五条测试命令全过；本地 `python -m http.server 5173` 下完成摘录→刷新→移除与连续两次学习会话顺序不同的手工检查 (covers: S2; depends: T2, T3)
