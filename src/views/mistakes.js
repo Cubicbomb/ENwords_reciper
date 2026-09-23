@@ -104,7 +104,7 @@ function renderAddForm() {
       await put(db, 'flags', createFlag(id, 'mistake'));
       toast('已摘录');
       input.value = '';
-      mount(render());
+      mount(await render());
     } catch (error) {
       console.error(error);
       toast('添加失败');
@@ -182,7 +182,7 @@ async function removeEntry(entry) {
     }
 
     toast('已移除');
-    mount(render());
+    mount(await render());
   } catch (error) {
     console.error(error);
     toast('移除失败');
