@@ -1,0 +1,252 @@
+[
+  {
+    "root": "act",
+    "meaning": "做，行动",
+    "examples": ["action", "active", "actor", "activate"]
+  },
+  {
+    "root": "struct",
+    "meaning": "建造",
+    "examples": ["structure", "construct", "instruct", "destruction"]
+  },
+  {
+    "root": "ject",
+    "meaning": "投掷",
+    "examples": ["project", "reject", "inject", "object"]
+  },
+  {
+    "root": "tract",
+    "meaning": "拉，拖",
+    "examples": ["attract", "extract", "contract", "distract"]
+  },
+  {
+    "root": "port",
+    "meaning": "携带",
+    "examples": ["transport", "export", "import", "report"]
+  },
+  {
+    "root": "scrib/script",
+    "meaning": "写",
+    "examples": ["describe", "prescribe", "subscribe", "script"]
+  },
+  {
+    "root": "spect",
+    "meaning": "看",
+    "examples": ["inspect", "respect", "expect", "prospect"]
+  },
+  {
+    "root": "dict",
+    "meaning": "说",
+    "examples": ["predict", "dictionary", "contradict", "verdict"]
+  },
+  {
+    "root": "duc/duct",
+    "meaning": "引导",
+    "examples": ["produce", "reduce", "introduce", "conduct"]
+  },
+  {
+    "root": "mit/mis",
+    "meaning": "发送",
+    "examples": ["submit", "admit", "commit", "permit"]
+  },
+  {
+    "root": "cess/ceed",
+    "meaning": "走",
+    "examples": ["process", "proceed", "succeed", "access"]
+  },
+  {
+    "root": "form",
+    "meaning": "形状",
+    "examples": ["reform", "inform", "transform", "platform"]
+  },
+  {
+    "root": "gen",
+    "meaning": "产生",
+    "examples": ["generate", "gene", "general", "oxygen"]
+  },
+  {
+    "root": "ject",
+    "meaning": "投掷",
+    "examples": ["project", "reject", "inject", "object"]
+  },
+  {
+    "root": "mem",
+    "meaning": "记忆",
+    "examples": ["memory", "remember", "memorial", "memorize"]
+  },
+  {
+    "root": "mot/mob/mov",
+    "meaning": "移动",
+    "examples": ["motion", "mobile", "move", "emotion"]
+  },
+  {
+    "root": "nat/nasc",
+    "meaning": "出生",
+    "examples": ["nature", "native", "nation", "nasty"]
+  },
+  {
+    "root": "plic/plex",
+    "meaning": "折叠",
+    "examples": ["complicate", "complex", "implicit", "duplicate"]
+  },
+  {
+    "root": "pos/pon",
+    "meaning": "放置",
+    "examples": ["position", "compose", "oppose", "expose"]
+  },
+  {
+    "root": "rupt",
+    "meaning": "打破",
+    "examples": ["interrupt", "corrupt", "erupt", "abrupt"]
+  },
+  {
+    "root": "scrib/script",
+    "meaning": "写",
+    "examples": ["describe", "prescribe", "subscribe", "script"]
+  },
+  {
+    "root": "sent/sens",
+    "meaning": "感觉",
+    "examples": ["sentence", "sensitive", "consent", "sentiment"]
+  },
+  {
+    "root": "serv",
+    "meaning": "服务，保持",
+    "examples": ["serve", "preserve", "observe", "reserve"]
+  },
+  {
+    "root": "sign",
+    "meaning": "标记",
+    "examples": ["signal", "design", "assign", "significant"]
+  },
+  {
+    "root": "sist/sta/stit",
+    "meaning": "站立",
+    "examples": ["consist", "stable", "stitute", "resist"]
+  },
+  {
+    "root": "solu/solv",
+    "meaning": "松开",
+    "examples": ["solution", "solve", "dissolve", "resolve"]
+  },
+  {
+    "root": "spec/spect",
+    "meaning": "看",
+    "examples": ["inspect", "respect", "expect", "prospect"]
+  },
+  {
+    "root": "spir",
+    "meaning": "呼吸",
+    "examples": ["inspire", "expire", "respire", "spirit"]
+  },
+  {
+    "root": "stat/sist",
+    "meaning": "站立",
+    "examples": ["state", "consist", "resist", "assist"]
+  },
+  {
+    "root": "tact/tang",
+    "meaning": "触摸",
+    "examples": ["contact", "tangible", "intact", "tactile"]
+  },
+  {
+    "root": "techn",
+    "meaning": "技术",
+    "examples": ["technology", "technique", "technical", "technician"]
+  },
+  {
+    "root": "tempor",
+    "meaning": "时间",
+    "examples": ["temporary", "contemporary", "tempo", "temper"]
+  },
+  {
+    "root": "ten/tin",
+    "meaning": "保持",
+    "examples": ["contain", "maintain", "sustain", "continue"]
+  },
+  {
+    "root": "tend/tens",
+    "meaning": "伸展",
+    "examples": ["extend", "intend", "intense", "tendency"]
+  },
+  {
+    "root": "terr",
+    "meaning": "土地",
+    "examples": ["territory", "terrain", "terrace", "terrible"]
+  },
+  {
+    "root": "test",
+    "meaning": "见证",
+    "examples": ["test", "protest", "contest", "testify"]
+  },
+  {
+    "root": "tract",
+    "meaning": "拉，拖",
+    "examples": ["attract", "extract", "contract", "distract"]
+  },
+  {
+    "root": "urb",
+    "meaning": "城市",
+    "examples": ["urban", "suburb", "urbanize", "urbanization"]
+  },
+  {
+    "root": "vac/van",
+    "meaning": "空",
+    "examples": ["vacant", "vacuum", "vanish", "evacuate"]
+  },
+  {
+    "root": "val/vail",
+    "meaning": "价值，强",
+    "examples": ["value", "valid", "prevail", "evaluate"]
+  },
+  {
+    "root": "ven/vent",
+    "meaning": "来",
+    "examples": ["adventure", "convention", "event", "prevent"]
+  },
+  {
+    "root": "ver/veri",
+    "meaning": "真实",
+    "examples": ["verify", "verdict", "veritable", "very"]
+  },
+  {
+    "root": "vers/vert",
+    "meaning": "转",
+    "examples": ["convert", "reverse", "diverse", "universe"]
+  },
+  {
+    "root": "via/voy",
+    "meaning": "路",
+    "examples": ["via", "voyage", "deviate", "trivial"]
+  },
+  {
+    "root": "vis/vid",
+    "meaning": "看",
+    "examples": ["visit", "video", "evidence", "provide"]
+  },
+  {
+    "root": "vit/viv",
+    "meaning": "生命",
+    "examples": ["vital", "survive", "vivid", "revive"]
+  },
+  {
+    "root": "vol/volv",
+    "meaning": "转，卷",
+    "examples": ["revolve", "involve", "evolve", "volume"]
+  },
+  {
+    "root": "vor/vour",
+    "meaning": "吃",
+    "examples": ["devour", "voracious", "herbivore", "carnivore"]
+  },
+  {
+    "root": "voy",
+    "meaning": "看",
+    "examples": ["voyage", "devoy", "envoy", "voyeur"]
+  },
+  {
+    "root": "vol",
+    "meaning": "意志",
+    "examples": ["volunteer", "voluntary", "benevolent", "malevolent"]
+  }
+]
