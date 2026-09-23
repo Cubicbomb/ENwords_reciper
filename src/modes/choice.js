@@ -3,7 +3,7 @@
  */
 
 import { h } from '../ui/dom.js';
-import { makeGuard } from './shared.js';
+import { makeGuard, createOptionList } from './shared.js';
 
 /**
  * @param {Object} word
@@ -17,49 +17,75 @@ export function build(word, ctx = {}) {
   const distractors = generateDistractors(word, ctx, 3);
   const startTime = Date.now();
 
-  if (isEn2Cn) {
-    const options = [currentDef, ...distractors.map(d => d.senses?.[0]?.defCn || '')].sort(() => Math.random() - 0.5);
-    const question = h('div', { style: { textAlign: 'center', padding: '20px' } },
-      h('div', { style: { fontSize: '28px', fontWeight: 'bold', marginBottom: '24px' } }, lemma),
-      h('div', { style: { fontSize: '14px', color: '#6b7280', marginBottom: '16px' } }, '请选择正确的中文释义')
-    );
-    const { guard } = makeGuard((selected) => {
-      const correct = selected === currentDef;
-      ctx.onComplete?.({ rating: correct ? 3 : 1, correct, ms: Date.now() - startTime, answer: selected });
-      return correct ? 3 : 1;
-    });
-    return { question, answer: createOptions(options, guard), check: () => null, word };
-  } else {
-    const options = [lemma, ...distractors.map(d => d.lemma)].sort(() => Math.random() - 0.5);
-    const question = h('div', { style: { textAlign: 'center', padding: '20px' } },
-      h('div', { style: { fontSize: '28px', fontWeight: 'bold', marginBottom: '24px', color: '#111827' } }, currentDef),
-      h('div', { style: { fontSize: '14px', color: '#6b7280', marginBottom: '16px' } }, '请选择正确的英文单词')
-    );
-    const { guard } = makeGuard((selected) => {
-      const correct = selected === lemma;
-      ctx.onComplete?.({ rating: correct ? 3 : 1, correct, ms: Date.now() - startTime, answer: selected });
-      return correct ? 3 : 1;
-    });
-    return { question, answer: createOptions(options, guard), check: () => null, word };
-  }
-}
+  let optionList = null;
 
-function createOptions(options, onSelect) {
-  return h('div', { style: { display: 'grid', gridTemplateColumns: '1fr', gap: '12px', padding: '0 16px' } },
-    ...options.map(option =>
-      h('button', {
+  if (isEn2Cn) {
+    const options = [currentDef, ...distractors.map(d => d.senses?.[0]?.defCn || '')]
+      .filter(Boolean)
+      .sort(() => Math.random() - 0.5);
+
+    const question = h('div', {
+      style: { textAlign: 'center', padding: '16px 0 24px' }
+    },
+      h('div', {
+        style: { fontSize: '36px', fontWeight: '600', letterSpacing: '-0.02em', marginBottom: '8px' }
+      }, lemma),
+      h('div', { style: { fontSize: '13px', color: 'var(--ink-3)' } }, '选择正确的中文释义')
+    );
+
+    optionList = createOptionList(options, currentDef, (correct, selected) => {
+      ctx.onComplete?.({
+        rating: correct ? 3 : 1,
+        correct,
+        ms: Date.now() - startTime,
+        answer: selected
+      });
+    });
+
+    return {
+      question,
+      answer: optionList.node,
+      check: () => null,
+      word,
+      cleanup: () => optionList.cleanup()
+    };
+  } else {
+    const options = [lemma, ...distractors.map(d => d.lemma)]
+      .filter(Boolean)
+      .sort(() => Math.random() - 0.5);
+
+    const question = h('div', {
+      style: { textAlign: 'center', padding: '16px 0 24px' }
+    },
+      h('div', {
         style: {
-          padding: '16px', borderRadius: '8px', border: '2px solid #e5e7eb',
-          background: 'white', fontSize: '16px', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s'
-        },
-        onClick: (e) => {
-          e.target.style.borderColor = '#3b82f6';
-          e.target.style.background = '#eff6ff';
-          setTimeout(() => onSelect(option), 200);
+          fontSize: '22px',
+          fontWeight: '500',
+          lineHeight: '1.5',
+          marginBottom: '8px',
+          color: 'var(--ink)'
         }
-      }, option)
-    )
-  );
+      }, currentDef),
+      h('div', { style: { fontSize: '13px', color: 'var(--ink-3)' } }, '选择正确的英文单词')
+    );
+
+    optionList = createOptionList(options, lemma, (correct, selected) => {
+      ctx.onComplete?.({
+        rating: correct ? 3 : 1,
+        correct,
+        ms: Date.now() - startTime,
+        answer: selected
+      });
+    });
+
+    return {
+      question,
+      answer: optionList.node,
+      check: () => null,
+      word,
+      cleanup: () => optionList.cleanup()
+    };
+  }
 }
 
 function generateDistractors(word, ctx, count = 3) {
@@ -68,7 +94,9 @@ function generateDistractors(word, ctx, count = 3) {
   const allWords = ctx.allWords || [];
 
   const samePos = allWords.filter(w =>
-    w.id !== id && w.senses?.some(s => s.pos === currentPos) && w.senses?.[0]?.defCn !== senses?.[0]?.defCn
+    w.id !== id &&
+    w.senses?.some(s => s.pos === currentPos) &&
+    w.senses?.[0]?.defCn !== senses?.[0]?.defCn
   ).sort(() => Math.random() - 0.5);
 
   const result = samePos.slice(0, count);

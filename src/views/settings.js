@@ -1,71 +1,85 @@
 /**
  * 设置视图
  */
-import { h, toast } from '../ui/dom.js';
+import { h, mount, toast } from '../ui/dom.js';
 import { exportAll, downloadJSON, importData, checkBackupReminder, updateLastExportTime } from '../io/export.js';
 
-let state = {
-  loading: false,
-  lastExportTime: null
-};
+let state = { loading: false };
 
 export async function render() {
   state.loading = false;
-  
-  // 检查是否需要备份提示
+
   const needsBackup = await checkBackupReminder();
   if (needsBackup) {
-    setTimeout(() => {
-      toast('建议导出数据备份（超过 7 天未备份）');
-    }, 1000);
+    setTimeout(() => toast('建议导出数据备份'), 1000);
   }
-  
-  return h('div', { style: { padding: '20px', maxWidth: '600px', margin: '0 auto' } },
-    h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' } },
-      h('h2', { style: { margin: 0 } }, '⚙️ 设置'),
-      h('button', { className: 'btn btn-secondary', onClick: () => window.location.hash = '#/' }, '← 返回')
-    ),
-    
-    // 数据管理
-    h('div', { className: 'card', style: { padding: '20px', marginBottom: '20px' } },
-      h('h3', { style: { marginTop: 0, marginBottom: '16px' } }, '📦 数据管理'),
-      
-      // 导出按钮
+
+  return h('div', { className: 'fade-in' },
+    // 顶栏
+    h('header', {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '16px 20px',
+        borderBottom: '1px solid var(--line)'
+      }
+    },
       h('button', {
-        className: 'btn btn-primary',
-        onClick: handleExport,
-        disabled: state.loading,
-        style: { width: '100%', padding: '12px', marginBottom: '12px' }
-      }, state.loading ? '导出中...' : '导出数据备份'),
-      
-      // 导入区域
-      h('div', { style: { marginTop: '16px' } },
-        h('p', { style: { margin: '0 0 8px 0', fontWeight: 'bold' } }, '导入数据:'),
+        className: 'btn btn-ghost',
+        style: { padding: '4px 8px', marginLeft: '-8px' },
+        onClick: () => window.location.hash = '#/'
+      }, '←'),
+      h('h1', {}, '设置')
+    ),
+
+    h('div', { style: { padding: '20px' } },
+      // 数据管理
+      h('section', { style: { marginBottom: '28px' } },
+        h('div', { className: 'section-title' }, '数据'),
+
+        h('button', {
+          className: 'btn btn-primary btn-block',
+          onClick: handleExport,
+          disabled: state.loading,
+          style: { marginBottom: '8px' }
+        }, state.loading ? '导出中...' : '导出数据备份'),
+
         h('div', { style: { display: 'flex', gap: '8px', marginBottom: '8px' } },
           h('button', {
             className: 'btn btn-secondary',
+            style: { flex: 1 },
             onClick: () => handleImport('merge'),
-            disabled: state.loading,
-            style: { flex: 1 }
+            disabled: state.loading
           }, '合并导入'),
           h('button', {
-            className: 'btn btn-danger',
+            className: 'btn btn-secondary',
+            style: { flex: 1, color: 'var(--red)' },
             onClick: () => handleImport('replace'),
-            disabled: state.loading,
-            style: { flex: 1 }
+            disabled: state.loading
           }, '覆盖导入')
         ),
-        h('p', { style: { margin: 0, color: '#6b7280', fontSize: '12px' } },
-          '合并：保留现有数据，添加新数据；覆盖：清空现有数据后导入'
+
+        h('p', {
+          style: { fontSize: '12px', color: 'var(--ink-3)', lineHeight: '1.5' }
+        }, '合并保留现有数据并添加新数据；覆盖会清空现有数据')
+      ),
+
+      // 关于
+      h('section',
+        h('div', { className: 'section-title' }, '关于'),
+        h('div', {
+          style: {
+            padding: '14px 16px',
+            background: 'var(--bg)',
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--line)'
+          }
+        },
+          h('div', { style: { fontSize: '14px', fontWeight: '500', marginBottom: '4px' } }, 'CET4 背单词'),
+          h('div', { style: { fontSize: '13px', color: 'var(--ink-3)' } }, 'v0.1.0 · 零依赖纯前端')
         )
       )
-    ),
-    
-    // 关于
-    h('div', { className: 'card', style: { padding: '20px' } },
-      h('h3', { style: { marginTop: 0, marginBottom: '12px' } }, 'ℹ️ 关于'),
-      h('p', { style: { margin: 0, color: '#6b7280' } }, 'CET4 背单词应用 v0.1.0'),
-      h('p', { style: { margin: '8px 0 0 0', color: '#6b7280' } }, '极简、可携带、零依赖')
     )
   );
 }
@@ -73,17 +87,15 @@ export async function render() {
 async function handleExport() {
   state.loading = true;
   mount(render());
-  
   try {
     const data = await exportAll();
     const filename = `cet4-backup-${new Date().toISOString().split('T')[0]}.json`;
     downloadJSON(data, filename);
-    
     await updateLastExportTime();
-    toast('数据导出成功');
+    toast('导出成功');
   } catch (error) {
-    console.error('导出失败:', error);
-    toast('导出失败: ' + error.message);
+    console.error(error);
+    toast('导出失败');
   } finally {
     state.loading = false;
     mount(render());
@@ -94,35 +106,28 @@ async function handleImport(strategy) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json';
-  
+
   input.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
-    if (strategy === 'replace') {
-      if (!confirm('覆盖导入将清空现有数据，确定继续吗？')) {
-        return;
-      }
-    }
-    
+
+    if (strategy === 'replace' && !confirm('覆盖导入将清空现有数据，确定？')) return;
+
     state.loading = true;
     mount(render());
-    
+
     try {
       const result = await importData(file, strategy);
-      toast(`导入成功: ${result.stats.words} 个词条, ${result.stats.decks} 本词书`);
+      toast(`已导入 ${result.stats.words} 个词条`);
       window.location.hash = '#/';
     } catch (error) {
-      console.error('导入失败:', error);
-      toast('导入失败: ' + error.message);
+      console.error(error);
+      toast('导入失败');
     } finally {
       state.loading = false;
       mount(render());
     }
   };
-  
+
   input.click();
 }
-
-// 需要导入 mount 函数
-import { mount } from '../ui/dom.js';

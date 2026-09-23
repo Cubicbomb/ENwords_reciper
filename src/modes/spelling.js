@@ -1,5 +1,5 @@
 /**
- * 拼写模式：给中文义 + 首字母 + 长度槽位，Levenshtein 判定
+ * 拼写模式：给中文义 + 首字母提示
  */
 
 import { h } from '../ui/dom.js';
@@ -13,34 +13,59 @@ import { makeGuard } from './shared.js';
 export function build(word, ctx = {}) {
   const { lemma, senses, phonetic } = word;
   const defCn = senses?.[0]?.defCn || '';
-  const hint = `${lemma.charAt(0).toUpperCase()}${'·'.repeat(lemma.length - 1)}`;
+  const hint = `${lemma.charAt(0)}${' ·'.repeat(lemma.length - 1)}`;
 
-  const question = h('div', { style: { textAlign: 'center', padding: '20px' } },
-    h('div', { style: { fontSize: '24px', fontWeight: 'bold', marginBottom: '16px', color: '#111827' } }, defCn),
-    phonetic?.uk ? h('div', { style: { fontSize: '16px', color: '#6b7280', marginBottom: '16px' } }, `/${phonetic.uk}/`) : null,
-    h('div', { style: { fontSize: '18px', color: '#3b82f6', marginBottom: '16px', fontFamily: 'monospace' } }, hint),
-    h('div', { style: { fontSize: '14px', color: '#6b7280', marginBottom: '8px' } }, '请输入单词拼写')
+  const question = h('div', {
+    style: { textAlign: 'center', padding: '8px 0 20px' }
+  },
+    h('div', {
+      style: { fontSize: '22px', fontWeight: '500', lineHeight: '1.5', marginBottom: '8px' }
+    }, defCn),
+    phonetic?.uk
+      ? h('div', {
+          style: { fontSize: '14px', color: 'var(--ink-3)', fontFamily: 'monospace', marginBottom: '16px' }
+        }, `/${phonetic.uk}/`)
+      : h('div', { style: { height: '16px' } }),
+    h('div', {
+      style: {
+        fontSize: '18px',
+        color: 'var(--ink-3)',
+        fontFamily: 'monospace',
+        letterSpacing: '0.1em',
+        marginBottom: '20px'
+      }
+    }, hint)
   );
 
   const input = h('input', {
-    type: 'text', placeholder: '输入单词...',
-    style: { width: '100%', padding: '12px', fontSize: '18px', textAlign: 'center', border: '2px solid #e5e7eb', borderRadius: '8px', outline: 'none' }
+    type: 'text',
+    placeholder: '输入单词',
+    autocomplete: 'off',
+    autocapitalize: 'off',
+    spellcheck: 'false',
+    style: {
+      textAlign: 'center',
+      fontSize: '16px',
+      padding: '12px',
+      letterSpacing: '0.05em'
+    }
   });
 
   const submitBtn = h('button', {
-    className: 'btn btn-primary',
-    style: { width: '100%', padding: '12px', marginTop: '12px', fontSize: '16px' },
+    className: 'btn btn-primary btn-block',
+    style: { marginTop: '10px' },
     onClick: () => doCheck()
   }, '确认');
 
-  const answerDisplay = h('div', { style: { display: 'none' } });
+  const answerDisplay = h('div');
 
-  const container = h('div', { style: { padding: '0 16px' } }, question, input, submitBtn, answerDisplay);
+  const container = h('div', {}, question, input, submitBtn, answerDisplay);
 
   const startTime = Date.now();
   const { guard } = makeGuard(() => {
     const userAnswer = input.value.trim().toLowerCase();
-    if (!userAnswer) { /* 不算作答 */ return undefined; }
+    if (!userAnswer) return undefined;
+
     input.disabled = true;
     submitBtn.disabled = true;
 
@@ -49,18 +74,34 @@ export function build(word, ctx = {}) {
     const isClose = distance <= 1 && !correct;
     const rating = correct ? 3 : isClose ? 2 : 1;
 
-    const resultText = correct ? '✅ 正确' : isClose ? '🔶 接近' : '❌ 错误';
-    const resultColor = correct ? '#10b981' : isClose ? '#f59e0b' : '#ef4444';
-    answerDisplay.style.display = 'block';
-    answerDisplay.innerHTML = '';
+    const resultLabel = correct ? '正确' : isClose ? '接近' : '错误';
+    const resultColor = correct ? 'var(--green)' : isClose ? 'var(--amber)' : 'var(--red)';
+
     answerDisplay.appendChild(
-      h('div', { style: { textAlign: 'center', marginTop: '16px', padding: '12px', borderRadius: '8px', background: resultColor + '10' } },
-        h('div', { style: { fontSize: '18px', color: resultColor, marginBottom: '8px' } }, resultText),
-        h('div', { style: { fontSize: '16px', color: '#111827' } }, `正确拼写: ${lemma}`),
-        !correct ? h('div', { style: { fontSize: '14px', color: '#6b7280', marginTop: '8px' } }, `你输入: ${userAnswer}`) : null,
-        isClose ? h('div', { style: { fontSize: '14px', color: '#6b7280', marginTop: '4px' } }, `编辑距离: ${distance}`) : null
+      h('div', {
+        style: {
+          textAlign: 'center',
+          marginTop: '16px',
+          padding: '14px',
+          background: 'var(--bg)',
+          borderRadius: 'var(--radius)',
+          animation: 'slideUp 0.2s ease'
+        }
+      },
+        h('div', {
+          style: { fontSize: '13px', color: resultColor, fontWeight: '500', marginBottom: '8px' }
+        }, resultLabel),
+        h('div', {
+          style: { fontSize: '16px', fontWeight: '500' }
+        }, lemma),
+        !correct
+          ? h('div', {
+              style: { fontSize: '13px', color: 'var(--ink-3)', marginTop: '4px' }
+            }, `你输入：${userAnswer}`)
+          : null
       )
     );
+
     ctx.onComplete?.({ rating, correct, ms: Date.now() - startTime, answer: userAnswer });
     return rating;
   });

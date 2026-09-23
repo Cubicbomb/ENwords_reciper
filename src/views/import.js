@@ -17,47 +17,61 @@ let state = {
 };
 
 export async function render() {
-  return h('div', { style: { padding: '20px', maxWidth: '600px', margin: '0 auto' } },
-    h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' } },
-      h('h2', { style: { margin: 0 } }, '➕ 导入词表'),
-      h('button', { className: 'btn btn-secondary', onClick: () => window.location.hash = '#/' }, '← 返回')
+  return h('div', { className: 'fade-in' },
+    // 顶栏
+    h('header', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 20px',
+        borderBottom: '1px solid var(--line)'
+      }
+    },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: '8px' } },
+        h('button', {
+          className: 'btn btn-ghost',
+          style: { padding: '4px 8px', marginLeft: '-8px' },
+          onClick: () => window.location.hash = '#/'
+        }, '←'),
+        h('h1', {}, '导入词表')
+      )
     ),
-    
-    // 文件选择区域
-    h('div', { className: 'card', style: { padding: '20px', marginBottom: '20px' } },
-      h('h3', { style: { marginTop: 0, marginBottom: '12px' } }, '选择文件'),
-      h('p', { style: { color: '#6b7280', marginBottom: '12px', fontSize: '14px' } }, '支持 CSV / TSV / TXT / JSON / Excel 格式'),
-      h('input', {
-        type: 'file',
-        accept: '.csv,.tsv,.txt,.json,.xlsx,.xls,.xlsm',
-        onChange: handleFileSelect,
-        style: { width: '100%', padding: '8px' }
-      })
-    ),
-    
-    // 映射预览区域
-    state.parseResult ? renderMappingPreview() : null,
-    
-    // 导入按钮
-    state.parseResult ? renderImportButton() : null
+
+    h('div', { style: { padding: '20px' } },
+      // 文件选择
+      h('section', { style: { marginBottom: '24px' } },
+        h('div', { className: 'section-title' }, '选择文件'),
+        h('p', {
+          style: { fontSize: '13px', color: 'var(--ink-3)', marginBottom: '12px' }
+        }, '支持 CSV / TSV / TXT / JSON / Excel'),
+        h('input', {
+          type: 'file',
+          accept: '.csv,.tsv,.txt,.json,.xlsx,.xls,.xlsm',
+          onChange: handleFileSelect
+        })
+      ),
+
+      // 映射预览
+      state.parseResult ? renderMappingPreview() : null,
+
+      // 导入按钮
+      state.parseResult ? renderImportButton() : null
+    )
   );
 }
 
 function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
+
   state.file = file;
-  
-  // 检查是否是 Excel 文件
   const ext = file.name.split('.').pop().toLowerCase();
   state.isExcel = ['xlsx', 'xls', 'xlsm'].includes(ext);
-  
+
   if (state.isExcel) {
-    // Excel 文件处理
     handleExcelFile(file);
   } else {
-    // 普通文本文件处理
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -65,74 +79,115 @@ function handleFileSelect(e) {
         state.parseResult = parseWordList(state.content, file.name);
         state.mapping = state.parseResult.mapping;
         state.preview = generateMappingPreview(state.parseResult.words, state.mapping);
-      
-      mount(render());
-      toast(`成功解析 ${state.parseResult.words.length} 个词条`);
-    } catch (error) {
-      toast(`解析失败: ${error.message}`);
-      console.error(error);
-    }
-  };
-  reader.readAsText(file);
+        mount(render());
+        toast(`解析 ${state.parseResult.words.length} 个词条`);
+      } catch (error) {
+        toast(`解析失败: ${error.message}`);
+        console.error(error);
+      }
+    };
+    reader.readAsText(file);
+  }
 }
 
 function renderMappingPreview() {
   const validation = validateMapping(state.mapping);
-  
-  return h('div', { className: 'card', style: { padding: '20px', marginBottom: '20px' } },
-    h('h3', { style: { marginTop: 0, marginBottom: '12px' } }, '字段映射预览'),
-    
-    // 映射状态
-    h('div', { style: { marginBottom: '16px', padding: '12px', background: validation.valid ? '#f0fdf4' : '#fef2f2', borderRadius: '8px' } },
-      validation.valid 
-        ? h('p', { style: { margin: 0, color: '#166534' } }, '✅ 映射有效')
-        : h('p', { style: { margin: 0, color: '#991b1b' } }, `❌ ${validation.errors.join(', ')}`)
+
+  return h('section', { style: { marginBottom: '24px' } },
+    h('div', { className: 'section-title' }, '字段映射'),
+
+    // 状态
+    h('div', {
+      style: {
+        padding: '10px 12px',
+        borderRadius: 'var(--radius)',
+        background: validation.valid ? 'var(--bg)' : '#fef2f2',
+        border: `1px solid ${validation.valid ? 'var(--line)' : '#fecaca'}`,
+        marginBottom: '12px',
+        fontSize: '13px',
+        color: validation.valid ? 'var(--ink-2)' : 'var(--red)'
+      }
+    }, validation.valid ? '映射有效' : validation.errors.join(', ')),
+
+    // 字段
+    h('div', {
+      style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }
+    },
+      mappingCell('单词', state.mapping.word),
+      mappingCell('释义', state.mapping.def)
     ),
-    
-    // 映射详情
-    h('div', { style: { marginBottom: '16px' } },
-      h('p', { style: { margin: '0 0 8px 0', fontWeight: 'bold' } }, '字段映射:'),
-      h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' } },
-        h('div', { style: { padding: '8px', background: '#f9fafb', borderRadius: '4px' } },
-          h('div', { style: { fontSize: '12px', color: '#6b7280' } }, '单词字段'),
-          h('div', { style: { fontWeight: 'bold' } }, state.mapping.word || '未检测到')
-        ),
-        h('div', { style: { padding: '8px', background: '#f9fafb', borderRadius: '4px' } },
-          h('div', { style: { fontSize: '12px', color: '#6b7280' } }, '释义字段'),
-          h('div', { style: { fontWeight: 'bold' } }, state.mapping.def || '未检测到')
-        )
-      )
-    ),
-    
+
     // 预览表格
     state.preview.length > 0 ? renderPreviewTable() : null,
-    
-    // 统计信息
-    h('p', { style: { color: '#6b7280', fontSize: '14px' } }, 
-      `共解析 ${state.parseResult.words.length} 个词条，格式: ${state.parseResult.format.toUpperCase()}`
-    )
+
+    // 统计
+    h('div', {
+      style: { fontSize: '13px', color: 'var(--ink-3)' }
+    }, `${state.parseResult.words.length} 个词条 · ${state.parseResult.format.toUpperCase()}`)
+  );
+}
+
+function mappingCell(label, value) {
+  return h('div', {
+    style: {
+      padding: '10px 12px',
+      background: 'var(--bg)',
+      borderRadius: 'var(--radius)',
+      border: '1px solid var(--line)'
+    }
+  },
+    h('div', { style: { fontSize: '11px', color: 'var(--ink-3)', marginBottom: '2px' } }, label),
+    h('div', { style: { fontSize: '14px', fontWeight: '500' } }, value || '未检测到')
   );
 }
 
 function renderPreviewTable() {
   return h('div', { style: { marginBottom: '16px', overflowX: 'auto' } },
-    h('p', { style: { margin: '0 0 8px 0', fontWeight: 'bold' } }, '前 5 条预览:'),
-    h('table', { style: { width: '100%', borderCollapse: 'collapse', fontSize: '14px' } },
+    h('div', { className: 'section-title', style: { paddingBottom: '6px' } }, '预览'),
+    h('table', {
+      style: {
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '13px',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--radius)',
+        overflow: 'hidden'
+      }
+    },
       h('thead', {},
         h('tr', {},
-          h('th', { style: { padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' } }, '单词'),
-          h('th', { style: { padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' } }, '释义'),
-          h('th', { style: { padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' } }, '音标'),
-          h('th', { style: { padding: '8px', border: '1px solid #e5e7eb', textAlign: 'left' } }, '例句')
+          ['单词', '释义'].map(th =>
+            h('th', {
+              style: {
+                padding: '8px 10px',
+                background: 'var(--bg)',
+                textAlign: 'left',
+                fontWeight: '500',
+                fontSize: '11px',
+                color: 'var(--ink-3)',
+                borderBottom: '1px solid var(--line)'
+              }
+            }, th)
+          )
         )
       ),
       h('tbody', {},
-        ...state.preview.map(item => 
+        ...state.preview.slice(0, 5).map(item =>
           h('tr', {},
-            h('td', { style: { padding: '8px', border: '1px solid #e5e7eb' } }, item.word),
-            h('td', { style: { padding: '8px', border: '1px solid #e5e7eb' } }, item.def),
-            h('td', { style: { padding: '8px', border: '1px solid #e5e7eb' } }, item.phonetic),
-            h('td', { style: { padding: '8px', border: '1px solid #e5e7eb', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, item.example)
+            h('td', {
+              style: {
+                padding: '8px 10px',
+                borderBottom: '1px solid var(--line)',
+                fontWeight: '500'
+              }
+            }, item.word),
+            h('td', {
+              style: {
+                padding: '8px 10px',
+                borderBottom: '1px solid var(--line)',
+                color: 'var(--ink-2)'
+              }
+            }, item.def)
           )
         )
       )
@@ -142,58 +197,45 @@ function renderPreviewTable() {
 
 function renderImportButton() {
   const validation = validateMapping(state.mapping);
-  
-  return h('div', { className: 'card', style: { padding: '20px', textAlign: 'center' } },
+  return h('section', {},
     h('button', {
-      className: 'btn btn-primary',
+      className: 'btn btn-primary btn-block',
       disabled: !validation.valid || state.importing,
       onClick: handleImport,
-      style: { padding: '12px 24px', fontSize: '16px' }
+      style: { padding: '12px' }
     }, state.importing ? '导入中...' : `导入 ${state.parseResult.words.length} 个词条`)
   );
 }
 
 async function handleImport() {
   if (!state.parseResult || state.importing) return;
-  
   state.importing = true;
   mount(render());
-  
+
   try {
     const db = await openDB();
-    
-    // 检查是否已有同名词书
     const decks = await getAll(db, 'decks');
     const existingDeck = decks.find(d => d.name === state.file.name);
-    
-    if (existingDeck) {
-      if (!confirm(`已存在同名词书「${existingDeck.name}」，是否覆盖？`)) {
-        state.importing = false;
-        mount(render());
-        return;
-      }
+
+    if (existingDeck && !confirm(`「${existingDeck.name}」已存在，覆盖？`)) {
+      state.importing = false;
+      mount(render());
+      return;
     }
-    
-    // 创建词书
+
     const deck = createDeck({
       name: state.file.name,
       source: 'import',
       wordIds: state.parseResult.words.map(w => w.id)
     });
-    
-    // 批量写入词条
+
     await bulkAdd(db, 'words', state.parseResult.words);
-    
-    // 写入词书
     await put(db, 'decks', deck);
-    
-    // 为每个词条创建卡片
+
     const cards = state.parseResult.words.map(w => createCard(deck.id, w.id));
     await bulkAdd(db, 'cards', cards);
-    
-    toast(`成功导入 ${state.parseResult.words.length} 个词条`);
-    
-    // 跳转到词书库
+
+    toast(`已导入 ${state.parseResult.words.length} 个词条`);
     window.location.hash = '#/library';
   } catch (error) {
     toast(`导入失败: ${error.message}`);
@@ -207,20 +249,14 @@ async function handleImport() {
 async function handleExcelFile(file) {
   try {
     const { parseExcel, generateExcelPreview } = await import('../io/excel.js');
-    
-    toast('正在解析 Excel 文件...');
+    toast('解析 Excel...');
     const data = await parseExcel(file);
-    
-    // 生成预览
     const preview = generateExcelPreview(data);
-    
-    // 转换为标准格式
+
     const words = data.map(item => {
       const word = item[preview.mapping.word];
       const def = item[preview.mapping.def];
-      
       if (!word || !def) return null;
-      
       return {
         id: String(word).trim().toLowerCase(),
         lemma: String(word).trim().toLowerCase(),
@@ -231,7 +267,7 @@ async function handleExcelFile(file) {
         rank: 0
       };
     }).filter(Boolean);
-    
+
     state.parseResult = { words, mapping: preview.mapping, format: 'excel' };
     state.mapping = preview.mapping;
     state.preview = preview.sample.map(item => ({
@@ -240,9 +276,9 @@ async function handleExcelFile(file) {
       phonetic: item[preview.mapping.phonetic] || '',
       example: item[preview.mapping.example] || ''
     }));
-    
+
     mount(render());
-    toast(`成功解析 ${words.length} 个词条`);
+    toast(`解析 ${words.length} 个词条`);
   } catch (error) {
     toast(`Excel 解析失败: ${error.message}`);
     console.error(error);

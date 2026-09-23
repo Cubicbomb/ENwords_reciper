@@ -1,5 +1,5 @@
 /**
- * 主入口：启动 + 哈希路由 + 视图切换
+ * 主入口：启动 + 哈希路由 + 全局快捷键
  */
 
 import { openDB } from './store/db.js';
@@ -20,6 +20,45 @@ const routes = {
 };
 
 /**
+ * 全局快捷键（PC）
+ */
+function setupGlobalShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // 忽略输入框
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // 忽略修饰键组合
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+    const hash = window.location.hash.slice(1) || '/';
+
+    // 仅在首页启用导航快捷键
+    if (hash === '/' || hash === '') {
+      const key = e.key.toLowerCase();
+      const shortcuts = {
+        's': () => { window.location.hash = '#/study'; },
+        'q': () => { window.location.hash = '#/quiz'; },
+        'm': () => { window.location.hash = '#/mistakes'; },
+        't': () => { window.location.hash = '#/stats'; },
+        'i': () => { window.location.hash = '#/import'; },
+        'l': () => { window.location.hash = '#/library'; },
+        ',': () => { window.location.hash = '#/settings'; }
+      };
+      if (shortcuts[key]) {
+        e.preventDefault();
+        shortcuts[key]();
+      }
+    }
+
+    // 任意页面：Esc 返回首页（学习/测试页面有各自处理）
+    if (e.key === 'Escape' && !hash.startsWith('/study') && !hash.startsWith('/quiz')) {
+      if (hash !== '/') {
+        window.location.hash = '#/';
+      }
+    }
+  });
+}
+
+/**
  * 处理路由变化
  */
 async function handleRoute() {
@@ -28,31 +67,23 @@ async function handleRoute() {
   const path = '/' + (segments[0] || '');
   const params = segments.slice(1).join('/');
 
-  // 显示加载中
   mount(loading('加载中...'));
 
   try {
-    // 动态导入视图模块
     const viewLoader = routes[path] || routes['/'];
     const viewModule = await viewLoader();
-    
-    // 调用视图的 render 方法
     const view = await viewModule.render(params || null);
-    
+
     if (view) {
       mount(view);
+      // 滚动到顶部
+      window.scrollTo(0, 0);
     } else {
-      mount(emptyState({
-        message: '页面不存在',
-        icon: '❓'
-      }));
+      mount(emptyState({ title: '页面不存在' }));
     }
   } catch (error) {
     console.error('路由加载失败:', error);
-    mount(emptyState({
-      message: '加载失败，请刷新重试',
-      icon: '❌'
-    }));
+    mount(emptyState({ title: '加载失败', desc: '请刷新重试' }));
   }
 }
 
@@ -60,31 +91,24 @@ async function handleRoute() {
  * 初始化应用
  */
 async function init() {
-  console.log('CET4 背单词应用启动中...');
-
-  // 打开数据库
   try {
     await openDB();
-    console.log('IndexedDB 初始化成功');
   } catch (error) {
     console.error('数据库初始化失败:', error);
-    mount(emptyState({
-      message: '数据库初始化失败',
-      icon: '💾'
-    }));
+    mount(emptyState({ title: '数据库初始化失败' }));
     return;
   }
 
-  // 加载内置词表
   await loadBuiltinDeck();
+
+  // 设置全局快捷键
+  setupGlobalShortcuts();
 
   // 监听路由变化
   window.addEventListener('hashchange', handleRoute);
-  
+
   // 初始路由
   await handleRoute();
-  
-  toast('欢迎使用 CET4 背单词应用');
 }
 
 /**
@@ -92,46 +116,36 @@ async function init() {
  */
 async function loadBuiltinDeck() {
   const db = await openDB();
-  
-  // 检查是否已有内置词书
+
   const decks = await getAll(db, 'decks');
   const builtinDeck = decks.find(d => d.source === 'builtin');
-  
-  if (builtinDeck) {
-    console.log('内置词书已存在，跳过加载');
-    return;
-  }
 
-  // 加载样例数据
+  if (builtinDeck) return;
+
   try {
     const response = await fetch('./data/cet4.json');
     const wordsData = await response.json();
-    
-    // 归一化词条
+
     const words = wordsData
       .map(normalizeWord)
       .filter(w => w && w.id);
-    
-    // 创建内置词书
+
     const deck = createDeck({
       name: 'CET4 核心词汇',
       source: 'builtin',
       wordIds: words.map(w => w.id)
     });
-    
-    // 批量写入
+
     await bulkAdd(db, 'words', words);
     await put(db, 'decks', deck);
-    
-    // 为每个词条创建新卡片
+
     const cards = words.map(w => createCard(deck.id, w.id));
     await bulkAdd(db, 'cards', cards);
-    
+
     console.log(`内置词书加载完成: ${words.length} 词`);
     toast(`已加载 ${words.length} 个样例单词`);
   } catch (error) {
     console.error('加载内置词表失败:', error);
-    // 不阻断启动，用户可通过导入功能添加词表
   }
 }
 
