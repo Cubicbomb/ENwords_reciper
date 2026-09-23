@@ -30,7 +30,7 @@ export function canUseMode(modeId, word) {
 }
 
 /**
- * 自动选择模式：flash 打底，每 5 张插一个产出型
+ * 自动选择模式：flash 打底，每 4 张插一个产出型
  */
 export function autoSelectMode(word, index) {
   const output = ['choice-en2cn', 'spelling', 'cloze'].filter(id => canUseMode(id, word));
