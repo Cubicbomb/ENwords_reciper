@@ -77,6 +77,17 @@ export async function speak(word) {
   if (audio?.uk) {
     try { await new Audio(audio.uk).play(); return; } catch {}
   }
+  
+  // 使用 TTS 音频缓存
+  try {
+    const { speakWord } = await import('../ui/speech.js');
+    await speakWord(lemma);
+    return;
+  } catch (error) {
+    console.error('TTS 缓存失败，回退到直接播放:', error);
+  }
+  
+  // 回退到直接 speechSynthesis
   if (window.speechSynthesis) {
     const voices = window.speechSynthesis.getVoices();
     const enVoice = voices.find(v => v.lang.startsWith('en'));
