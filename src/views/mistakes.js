@@ -163,8 +163,9 @@ function renderEntry(entry) {
 
 /**
  * 持久移除：
- * - 手动摘录：删 Flag(mistake)；若同时日志派生（wrongCount>0）再写 Flag(ignore)
- * - 仅日志派生：写 Flag(ignore) 持久抑制
+ * - 有 Flag(mistake)：删 Flag(mistake)
+ * - 若当前仍是日志派生（logDerived）：写 Flag(ignore)，防止刷新后由最近一次 rating<=2 复活
+ * - 仅手动摘录且已非日志派生：只删 mistake，不写 ignore（之后再答错仍应进本）
  */
 async function removeEntry(entry) {
   const id = entry.word.id;
@@ -176,8 +177,7 @@ async function removeEntry(entry) {
     if (hasMistake) {
       await remove(db, 'flags', [id, 'mistake']);
     }
-    // 有日志错误记录 → 写 ignore，防止刷新后由日志复活
-    if (entry.wrongCount > 0) {
+    if (entry.logDerived) {
       await put(db, 'flags', createFlag(id, 'ignore'));
     }
 

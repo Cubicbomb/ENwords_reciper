@@ -35,14 +35,17 @@ commits: ce1aa23..  # filled at delivery
 ```js
 /**
  * @param {{ words: Word[], logs: Log[], flags: Flag[] }} input
- * @returns {Array<{ word: Word, manual: boolean, wrongCount: number, lastWrongAt: number }>}
+ * @returns {Array<{ word: Word, manual: boolean, logDerived: boolean, wrongCount: number, lastWrongAt: number }>}
  * 成员 = Flag(mistake) ∪ (最近 log.rating<=2 且无 Flag(ignore))；
- * manual=true 当且仅当存在 Flag(mistake)；按 lastWrongAt/updatedAt 降序。
+ * manual=true 当且仅当存在 Flag(mistake)；
+ * logDerived=true 当且仅当「最近一次 rating<=2 且无 ignore」（移除时据此决定是否写 ignore）；
+ * 按 lastWrongAt/updatedAt 降序。
  */
 export function computeMistakeEntries({ words, logs, flags })
 ```
 
-- `wrongCount`：该 wordId 在 logs 中 `rating<=2` 的次数（无日志的纯手动词为 0）。
+- `wrongCount`：该 wordId 在 logs 中 `rating<=2` 的次数（无日志的纯手动词为 0）；**不**代表当前是否日志派生。
+- `logDerived`：当前是否因日志入选；移除时仅当 `logDerived` 才写 `Flag(ignore)`（避免「历史错过但最近答对」的摘录词被永久 ignore）。
 - `lastWrongAt`：最近一次 `rating<=2` 的 ts；纯手动词用 `Flag.updatedAt`。
 - 输入原样返回新数组，不修改入参。
 

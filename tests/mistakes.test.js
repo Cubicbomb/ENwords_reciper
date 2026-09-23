@@ -40,7 +40,7 @@ describe('computeMistakeEntries()', () => {
     assert.equal(entries[0].lastWrongAt, 300);
   });
 
-  it('手动摘录无日志也进入，manual=true', () => {
+  it('手动摘录无日志也进入，manual=true, logDerived=false', () => {
     const entries = computeMistakeEntries({
       words: [word('gamma')],
       logs: [],
@@ -48,8 +48,40 @@ describe('computeMistakeEntries()', () => {
     });
     assert.equal(entries.length, 1);
     assert.equal(entries[0].manual, true);
+    assert.equal(entries[0].logDerived, false);
     assert.equal(entries[0].wrongCount, 0);
     assert.equal(entries[0].lastWrongAt, 500);
+  });
+
+  it('logDerived：最近一次 rating<=2 时为 true', () => {
+    const entries = computeMistakeEntries({
+      words: [word('alpha')],
+      logs: [log('alpha', 1, 100)],
+      flags: []
+    });
+    assert.equal(entries[0].logDerived, true);
+  });
+
+  it('logDerived：历史错过但最近一次答对 → false（移除时不写 ignore）', () => {
+    const entries = computeMistakeEntries({
+      words: [word('alpha')],
+      logs: [log('alpha', 1, 100), log('alpha', 3, 200)],
+      flags: [{ wordId: 'alpha', type: 'mistake', updatedAt: 300 }]
+    });
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].manual, true);
+    assert.equal(entries[0].logDerived, false);
+    assert.equal(entries[0].wrongCount, 1);
+  });
+
+  it('logDerived：手动摘录且最近一次仍答错 → true', () => {
+    const entries = computeMistakeEntries({
+      words: [word('alpha')],
+      logs: [log('alpha', 1, 200)],
+      flags: [{ wordId: 'alpha', type: 'mistake', updatedAt: 100 }]
+    });
+    assert.equal(entries[0].manual, true);
+    assert.equal(entries[0].logDerived, true);
   });
 
   it('ignore 抑制日志派生', () => {

@@ -13,6 +13,7 @@
  * @typedef {Object} MistakeEntry
  * @property {Word} word
  * @property {boolean} manual - 是否手动摘录（存在 Flag mistake）
+ * @property {boolean} logDerived - 是否因最近一次 log.rating<=2 且无 ignore 而入选
  * @property {number} wrongCount - logs 中 rating<=2 的次数
  * @property {number} lastWrongAt - 最近一次错的时间戳（无日志用 flag.updatedAt）
  */
@@ -53,10 +54,14 @@ export function computeMistakeEntries({ words, logs, flags }) {
 
   /** @type {Set<string>} */
   const memberIds = new Set();
+  const logDerivedIds = new Set();
 
   // 日志派生：最近一次 rating<=2 且未 ignore
   for (const [id, rating] of latestRating) {
-    if (rating <= 2 && !ignoreIds.has(id)) memberIds.add(id);
+    if (rating <= 2 && !ignoreIds.has(id)) {
+      memberIds.add(id);
+      logDerivedIds.add(id);
+    }
   }
 
   // 手动摘录始终在（摘录时会删 ignore，此处兜底）
@@ -69,7 +74,13 @@ export function computeMistakeEntries({ words, logs, flags }) {
     const manual = mistakeIds.has(id);
     const count = wrongCount.get(id) || 0;
     const ts = lastWrongAt.get(id) ?? mistakeUpdatedAt.get(id) ?? 0;
-    entries.push({ word, manual, wrongCount: count, lastWrongAt: ts });
+    entries.push({
+      word,
+      manual,
+      logDerived: logDerivedIds.has(id),
+      wrongCount: count,
+      lastWrongAt: ts
+    });
   }
 
   entries.sort((a, b) => b.lastWrongAt - a.lastWrongAt);
